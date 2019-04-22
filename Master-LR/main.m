@@ -52,32 +52,31 @@ clear trainingLastRow validationLastRow testLastRow;
 %% Linear model with 2 features
 
 % Set regularization parameter lambda to 0 and degree of polynomial to 1
-lambda = 0;
-degree = 1;
+lambda_lin= 0;
+degree_lin = 1;
 
 % Map features
-trainingFeatures = mapFeatures(trainingFeatures(:,1), trainingFeatures(:,2), degree);
-validationFeatures = mapFeatures(validationFeatures(:,1), validationFeatures(:,2), degree);
+trainingFeatures_lin = mapFeatures(trainingFeatures(:,1), trainingFeatures(:,2), degree_lin);
+validationFeatures_lin = mapFeatures(validationFeatures(:,1), validationFeatures(:,2), degree_lin);
 
 % Train theta
-theta = train(trainingFeatures, trainingLabel, lambda);
+theta_lin = train(trainingFeatures_lin, trainingLabel, lambda_lin);
 
 % F1-score of training set and validation set
 
-p_train = predict(theta, trainingFeatures);
-F1_training = F_Score(trainingLabel, p_train);
+p_train_lin = predict(theta_lin, trainingFeatures_lin);
+F1_training_lin = F_Score(trainingLabel, p_train_lin);
 
-p_val = predict(theta, validationFeatures);
-F1_validation = F_Score(validationLabel, p_val);
+p_val_lin = predict(theta_lin, validationFeatures_lin);
+F1_validation_lin = F_Score(validationLabel, p_val_lin);
 
-fprintf('F1 score for training set = %f \n', F1_training)
-fprintf('F1 score for validation set = %f \n', F1_validation)
+fprintf('F1 score for training set = %f \n', F1_training_lin)
+fprintf('F1 score for validation set = %f \n', F1_validation_lin)
 
 % Plot Boundary
-plotDecisionBoundary(theta, trainingFeatures, trainingLabel, degree);
-axis([-0.75 0.75 -0.4 1.3]);
+plotDecisionBoundary(theta_lin, trainingFeatures_lin, trainingLabel, degree_lin);
 hold on;
-title(sprintf('Training: lambda = %g F1 = %g', lambda, F1_training))
+title(sprintf('Training: lambda = %g F1 = %g', lambda_lin, F1_training_lin))
 xlabel('feat 4')
 ylabel('feat 6')
 legend('y = 1', 'y = 0', 'Decision boundary')
@@ -88,69 +87,36 @@ pause;
 
 %% Polynomial features from 2 features
 
-degree = 6;
-trainingFeatures = mapFeatures(trainingFeatures(:,1), trainingFeatures(:,2), degree);
-
-% Set regularization parameter lambda to 0
-lambda = 0;
-
-% Train theta
-[theta] = train(trainingFeatures, trainingLabel, lambda); 
-
-% Plot Boundary
-plotDecisionBoundary(theta, trainingFeatures, trainingLabel, degree);
-hold on;
-title(sprintf('poly: lambda = %g', lambda))
-%and F1 = %g', lambda, F_Score))
-xlabel('feat 4')
-ylabel('feat 6')
-legend('y = 1', 'y = 0', 'Decision boundary')
-hold off;
+degree_pol = 6;
+trainingFeatures_pol = mapFeatures(trainingFeatures(:,1), trainingFeatures(:,2), degree_pol);
+validationFeatures_pol = mapFeatures(validationFeatures(:,1), validationFeatures(:,2), degree_pol);
 
 % Optimize lambda
 
-lambda_vec = [3^(-10): 3^(10)];
+lambda_pol = logspace(-10, 10, 500)
 
-F_Score_train = zeros(length(lambda_vec), 1);
-F_Score_val = zeros(length(lambda_vec), 1);
+F_Score_train_pol = zeros(length(lambda_pol), 1);
+F_Score_val_pol = zeros(length(lambda_pol), 1);
 
-for i = 1:length(lambda_vec)
-    lambda = lambda_vec(i);
-    theta = train(trainingFeatures, trainingLabel, lambda);
-    p_train = predict(theta, trainingFeatures);
-    F_Score_train(i) = F_Score(trainingLabel, p_train);
-    fprintf('F-Score = %f \n', F_Score_train(i))
-    p_val = predict(theta, validationFeatures);
-    F_Score_val(i) = F_Score(validationLabel, p_val);
-    %error_train(i) = costFunctionReg(theta, trainingFeatures, trainingLabel, lambda);
-    %error_val(i) = costFunctionReg(theta, validationFeatures, validationLabel, lambda);
+for i = 1:length(lambda_pol)
+    theta_pol = train(trainingFeatures_pol, trainingLabel, lambda_pol(i));
+    
+    p_train_pol = predict(theta_pol, trainingFeatures_pol);
+    F_Score_train_pol(i) = F_Score(trainingLabel, p_train_pol);
+    
+    p_val_pol = predict(theta_pol, validationFeatures_pol);
+    F_Score_val_pol(i) = F_Score(validationLabel, p_val_pol);
 end
 
 figure;
-plot(lambda_vec, F_Score_train, lambda_vec, F_Score_val);
-hold on
-title('Optimizing lambda')
-legend('Train', 'Cross Validation');
+plot(lambda_pol, F_Score_train_pol);
+set(gca, 'XScale', 'log');
+axis([10^(-10) 10^10 0 1]);
 xlabel('lambda');
 ylabel('F1 Score');
+hold on
+plot(lambda_pol, F_Score_val_pol);
+legend('Training set','Validation set');
 
-%% Validation
-
-degree = 6;
-validationFeatures = mapFeatures(validationFeatures(:,1), validationFeatures(:,2), degree);
-
-% Set regularization parameter lambda to 0
-lambda = 0;
-
-% Train theta
-[theta] = train(validationFeatures, validationLabel, lambda); 
-
-% Plot Boundary
-plotDecisionBoundary(theta, validationFeatures, validationLabel, degree);
-hold on;
-title(sprintf('validation poly: lambda = %g', lambda))
-%and F1 = %g', lambda, F_Score))
-xlabel('feat 4')
-ylabel('feat 6')
-legend('y = 1', 'y = 0', 'Decision boundary')
-hold off;
+fprintf('\nProgram paused. Press enter to continue.\n');
+%pause;
