@@ -48,6 +48,8 @@ clear trainingLastRow validationLastRow testLastRow;
 
 %% Linear model with 2 features
 
+% TRAINING
+
 % Setup data matrix
 %[m, n] = size(trainingFeatures);
 %trainingFeatures = [ones(m, 1) trainingFeatures];
@@ -63,19 +65,17 @@ lambda = 0;
 
 % Plot Boundary
 plotDecisionBoundary(theta, trainingFeatures, trainingLabel, degree);
+axis([-0.75 0.75 -0.4 1.3]);
 hold on;
-title(sprintf('lambda = %g', lambda))
+title(sprintf('Training: slambda = %g', lambda))
 %and F1 = %g', lambda, F_Score))
 xlabel('feat 4')
 ylabel('feat 6')
 legend('y = 1', 'y = 0', 'Decision boundary')
 hold off;
 
-%% Validation
+% VALIDATION
 
-% Setup data matrix
-%[m, n] = size(trainingFeatures);
-%trainingFeatures = [ones(m, 1) trainingFeatures];
 degree = 1;
 validationFeatures = mapFeatures(validationFeatures(:,1), validationFeatures(:,2), degree);
 % ^ werkt beide
@@ -83,13 +83,10 @@ validationFeatures = mapFeatures(validationFeatures(:,1), validationFeatures(:,2
 % Set regularization parameter lambda to 0
 lambda = 0;
 
-% Train theta
-[theta] = train(validationFeatures, validationLabel, lambda); 
-
 % Plot Boundary
 plotDecisionBoundary(theta, validationFeatures, validationLabel, degree);
 hold on;
-title(sprintf('validation: lambda = %g', lambda))
+title(sprintf('Validation: lambda = %g', lambda))
 %and F1 = %g', lambda, F_Score))
 xlabel('feat 4')
 ylabel('feat 6')
