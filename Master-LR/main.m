@@ -20,6 +20,9 @@ title('Scatter plot of feature 4 and 6, sitting vs. rest')
 hold on;
 xlabel('feat 4')
 ylabel('feat 6')
+
+fprintf('\nProgram paused. Press enter to continue.\n');
+pause;
 %% Data seperation
 % Normalisation
 chosenFeatures = normalise(chosenFeatures);
@@ -48,57 +51,40 @@ clear trainingLastRow validationLastRow testLastRow;
 
 %% Linear model with 2 features
 
-% TRAINING
-
-% Setup data matrix
-%[m, n] = size(trainingFeatures);
-%trainingFeatures = [ones(m, 1) trainingFeatures];
-degree = 1;
-trainingFeatures = mapFeatures(trainingFeatures(:,1), trainingFeatures(:,2), degree);
-% ^ werkt beide
-
-% Set regularization parameter lambda to 0
+% Set regularization parameter lambda to 0 and degree of polynomial to 1
 lambda = 0;
+degree = 1;
+
+% Map features
+trainingFeatures = mapFeatures(trainingFeatures(:,1), trainingFeatures(:,2), degree);
+validationFeatures = mapFeatures(validationFeatures(:,1), validationFeatures(:,2), degree);
 
 % Train theta
-[theta] = train(trainingFeatures, trainingLabel, lambda); 
+theta = train(trainingFeatures, trainingLabel, lambda);
+
+% F1-score of training set and validation set
+
+p_train = predict(theta, trainingFeatures);
+F1_training = F_Score(trainingLabel, p_train);
+
+p_val = predict(theta, validationFeatures);
+F1_validation = F_Score(validationLabel, p_val);
+
+fprintf('F1 score for training set = %f \n', F1_training)
+fprintf('F1 score for validation set = %f \n', F1_validation)
 
 % Plot Boundary
 plotDecisionBoundary(theta, trainingFeatures, trainingLabel, degree);
 axis([-0.75 0.75 -0.4 1.3]);
 hold on;
-title(sprintf('Training: slambda = %g', lambda))
-%and F1 = %g', lambda, F_Score))
+title(sprintf('Training: lambda = %g F1 = %g', lambda, F1_training))
 xlabel('feat 4')
 ylabel('feat 6')
 legend('y = 1', 'y = 0', 'Decision boundary')
 hold off;
 
-% VALIDATION
-
-degree = 1;
-validationFeatures = mapFeatures(validationFeatures(:,1), validationFeatures(:,2), degree);
-% ^ werkt beide
-
-% Set regularization parameter lambda to 0
-lambda = 0;
-
-% Plot Boundary
-plotDecisionBoundary(theta, validationFeatures, validationLabel, degree);
-hold on;
-title(sprintf('Validation: lambda = %g', lambda))
-%and F1 = %g', lambda, F_Score))
-xlabel('feat 4')
-ylabel('feat 6')
-legend('y = 1', 'y = 0', 'Decision boundary')
-hold off;
-
-%% F1-score
-
-p = predict(theta, trainingFeatures);
-
-F_Score = F_Score(trainingLabel, p);
-fprintf('F-Score = %f \n', F_Score)
+fprintf('\nProgram paused. Press enter to continue.\n');
+pause;
 
 %% Polynomial features from 2 features
 
@@ -123,7 +109,7 @@ hold off;
 
 % Optimize lambda
 
-lambda_vec = [3^(-10):500: 3^(10)];
+lambda_vec = [3^(-10): 3^(10)];
 
 F_Score_train = zeros(length(lambda_vec), 1);
 F_Score_val = zeros(length(lambda_vec), 1);
