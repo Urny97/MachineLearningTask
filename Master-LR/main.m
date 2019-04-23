@@ -122,7 +122,7 @@ plot(lambda_pol, F_Score_val_pol);
 legend('Training set','Validation set');
 title('Using Features 4 & 6');
 
-% plot decision boundary for validation set with highest lambda
+% plot decision boundary for validation set with highest F1 score
 index = find(F_Score_val_pol == max(F_Score_val_pol));
 best_lambda_val = lambda_pol(index);
 best_theta_val = train(trainingFeatures_pol, trainingLabel, best_lambda_val);
@@ -140,13 +140,11 @@ pause;
 
 %% Linear classifier with all 8 features
 close all
-% normalise
-newChosenFeatures = featuresNorm;
 
 % Divide feature data in training, validation and test data
-newTrainingFeatures = newChosenFeatures(1:trainingLastRow, :);
-newValidationFeatures = newChosenFeatures(trainingLastRow:validationLastRow,:);
-newTestFeatures = newChosenFeatures(validationLastRow:testLastRow,:);
+newTrainingFeatures = featuresNorm(1:trainingLastRow, :);
+newValidationFeatures = featuresNorm(trainingLastRow:validationLastRow,:);
+newTestFeatures = featuresNorm(validationLastRow:testLastRow,:);
 
 % map features (in this case only add a column of ones)
 newTrainingFeatures_lin = [ones(size(newTrainingFeatures(:,1))) newTrainingFeatures];
@@ -219,4 +217,28 @@ plot(lambda_pol, newF_Score_val_pol);
 legend('Training set','Validation set');
 title('All 8 features (non-linear)');
 
+fprintf('\nProgram paused. Press enter to continue.\n');
+pause;
+
 %% Adding more training examples
+close all
+
+F_Score_train_add = zeros([length(newTestFeatures) 1]);
+F_Score_val_add = zeros([length(newTestFeatures) 1]);
+
+for i = 1:length(newTestFeatures)
+    theta_more_ex = train([newTrainingFeatures ; newTestFeatures(1:i,:)], [trainingLabel ; testLabel(1:i,:)], 0);
+    
+    p_train_add = predict(theta_more_ex, [newTrainingFeatures ; newTestFeatures(1:i,:)]);
+    F_Score_train_add(i) = F_Score([trainingLabel ; testLabel(1:i,:)], p_train_add);
+    
+    p_val_add = predict(theta_more_ex, newValidationFeatures);
+    F_Score_val_add(i) = F_Score(validationLabel, p_val_add);
+end
+
+figure;
+plot(1:length(newTestFeatures), F_Score_train_add, 1:length(newTestFeatures), F_Score_val_add);
+xlabel('Number of training examples');
+ylabel('F1 Score');
+legend('Training set','Validation set');
+title('All 8 features (non-linear)');
