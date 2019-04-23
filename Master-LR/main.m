@@ -50,8 +50,6 @@ trainingSubject = subject(1:trainingLastRow, :);
 validationSubject = subject(trainingLastRow:validationLastRow,:);
 testSubject = subject(validationLastRow:testLastRow,:);
 
-clear trainingLastRow validationLastRow testLastRow;
-
 %% Linear model with 2 features
 
 % Set regularization parameter lambda to 0 and degree of polynomial to 1
@@ -122,6 +120,7 @@ ylabel('F1 Score');
 hold on
 plot(lambda_pol, F_Score_val_pol);
 legend('Training set','Validation set');
+title('Using Features 4 & 6');
 
 % plot decision boundary for validation set with highest lambda
 index = find(F_Score_val_pol == max(F_Score_val_pol));
@@ -140,5 +139,84 @@ fprintf('\nProgram paused. Press enter to continue.\n');
 pause;
 
 %% Linear classifier with all 8 features
+close all
 % normalise
-newChosenFeatures = normalise(features);
+newChosenFeatures = featuresNorm;
+
+% Divide feature data in training, validation and test data
+newTrainingFeatures = newChosenFeatures(1:trainingLastRow, :);
+newValidationFeatures = newChosenFeatures(trainingLastRow:validationLastRow,:);
+newTestFeatures = newChosenFeatures(validationLastRow:testLastRow,:);
+
+% map features (in this case only add a column of ones)
+newTrainingFeatures_lin = [ones(size(newTrainingFeatures(:,1))) newTrainingFeatures];
+newValidationFeatures_lin = [ones(size(newValidationFeatures(:,1))) newValidationFeatures];
+
+% F1 vs lambda for all 8 features
+
+lambda_pol = logspace(-10, 10, 250);
+
+newF_Score_train_lin = zeros(length(lambda_pol), 1);
+newF_Score_val_lin = zeros(length(lambda_pol), 1);
+
+for i = 1:length(lambda_pol)
+    newTheta_lin = train(newTrainingFeatures_lin, trainingLabel, lambda_pol(i));
+    
+    p_train_lin = predict(newTheta_lin, newTrainingFeatures_lin);
+    newF_Score_train_lin(i) = F_Score(trainingLabel, p_train_lin);
+    
+    p_val_lin = predict(newTheta_lin, newValidationFeatures_lin);
+    newF_Score_val_lin(i) = F_Score(validationLabel, p_val_lin);
+end
+
+% plot F1 vs lambda for all 8 features
+figure;
+plot(lambda_pol, newF_Score_train_lin);
+set(gca, 'XScale', 'log');
+axis([10^(-10) 10^10 0 1]);
+xlabel('lambda');
+ylabel('F1 Score');
+hold on
+plot(lambda_pol, newF_Score_val_lin);
+legend('Training set','Validation set');
+title('All 8 features (linear)');
+
+fprintf('\nProgram paused. Press enter to continue.\n');
+pause;
+
+%% Non-linear Classifier with 8 features
+close all
+% map features (in this case only add a column of ones)
+newTrainingFeatures_pol = mapFeaturesQuadratic(newTrainingFeatures, [1 2 3 4 5 6 7 8]);
+newValidationFeatures_pol = mapFeaturesQuadratic(newValidationFeatures, [1 2 3 4 5 6 7 8]);
+
+% F1 vs lambda for all 8 features
+
+lambda_pol = logspace(-10, 10, 250); 
+
+newF_Score_train_pol = zeros(length(lambda_pol), 1);
+newF_Score_val_pol = zeros(length(lambda_pol), 1);
+
+for i = 1:length(lambda_pol)
+    newTheta_pol = train(newTrainingFeatures_pol, trainingLabel, lambda_pol(i));
+    
+    p_train_pol = predict(newTheta_pol, newTrainingFeatures_pol);
+    newF_Score_train_pol(i) = F_Score(trainingLabel, p_train_pol);
+    
+    p_val_pol = predict(newTheta_pol, newValidationFeatures_pol);
+    newF_Score_val_pol(i) = F_Score(validationLabel, p_val_pol);
+end
+
+% plot F1 vs lambda for all 8 features
+figure;
+plot(lambda_pol, newF_Score_train_pol);
+set(gca, 'XScale', 'log');
+axis([10^(-10) 10^10 0 1]);
+xlabel('lambda');
+ylabel('F1 Score');
+hold on
+plot(lambda_pol, newF_Score_val_pol);
+legend('Training set','Validation set');
+title('All 8 features (non-linear)');
+
+%% Adding more training examples
