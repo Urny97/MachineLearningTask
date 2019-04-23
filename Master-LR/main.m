@@ -24,8 +24,11 @@ ylabel('feat 6')
 fprintf('\nProgram paused. Press enter to continue.\n');
 pause;
 %% Data seperation
+close all
+
 % Normalisation
-chosenFeatures = normalise(chosenFeatures);
+featuresNorm = normalise(features); 
+chosenFeatures = featuresNorm(:,[4 6]);
 
 % Create indices for data separation
 trainingLastRow = round(0.4*length(features));
@@ -70,9 +73,6 @@ F1_training_lin = F_Score(trainingLabel, p_train_lin);
 p_val_lin = predict(theta_lin, validationFeatures_lin);
 F1_validation_lin = F_Score(validationLabel, p_val_lin);
 
-fprintf('F1 score for training set = %f \n', F1_training_lin)
-fprintf('F1 score for validation set = %f \n', F1_validation_lin)
-
 % Plot Boundary
 plotDecisionBoundary(theta_lin, trainingFeatures_lin, trainingLabel, degree_lin);
 hold on;
@@ -82,10 +82,14 @@ ylabel('feat 6')
 legend('y = 1', 'y = 0', 'Decision boundary')
 hold off;
 
+fprintf('F1 score for training set = %.0001f \n', F1_training_lin)
+fprintf('F1 score for validation set = %.0001f \n', F1_validation_lin)
+
 fprintf('\nProgram paused. Press enter to continue.\n');
 pause;
 
 %% Polynomial features from 2 features
+close all
 
 degree_pol = 6;
 trainingFeatures_pol = mapFeatures(trainingFeatures(:,1), trainingFeatures(:,2), degree_pol);
@@ -93,7 +97,7 @@ validationFeatures_pol = mapFeatures(validationFeatures(:,1), validationFeatures
 
 % Optimize lambda
 
-lambda_pol = logspace(-10, 10, 500)
+lambda_pol = logspace(-10, 10, 250);
 
 F_Score_train_pol = zeros(length(lambda_pol), 1);
 F_Score_val_pol = zeros(length(lambda_pol), 1);
@@ -108,6 +112,7 @@ for i = 1:length(lambda_pol)
     F_Score_val_pol(i) = F_Score(validationLabel, p_val_pol);
 end
 
+% plot f1 score vs lambda
 figure;
 plot(lambda_pol, F_Score_train_pol);
 set(gca, 'XScale', 'log');
@@ -118,5 +123,22 @@ hold on
 plot(lambda_pol, F_Score_val_pol);
 legend('Training set','Validation set');
 
+% plot decision boundary for validation set with highest lambda
+index = find(F_Score_val_pol == max(F_Score_val_pol));
+best_lambda_val = lambda_pol(index);
+best_theta_val = train(trainingFeatures_pol, trainingLabel, best_lambda_val);
+
+plotDecisionBoundary(best_theta_val, validationFeatures_pol, validationLabel, degree_pol);
+hold on;
+title(sprintf('Validation: lambda = %g F1 = %g F1 training = %g', best_lambda_val, F_Score_val_pol(index), F_Score_train_pol(index)))
+xlabel('feat 4')
+ylabel('feat 6')
+legend('y = 1', 'y = 0', 'Decision boundary')
+hold off;
+
 fprintf('\nProgram paused. Press enter to continue.\n');
-%pause;
+pause;
+
+%% Linear classifier with all 8 features
+% normalise
+newChosenFeatures = normalise(features);
